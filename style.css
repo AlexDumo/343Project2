@@ -3,13 +3,36 @@
   }
   
 .item img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    min-height: 300px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-height: 300px;
 }
 
 .carousel-caption {
-    position: absolute;
-    top: 45px
- }
+  position: absolute;
+  top: 45px
+}
+
+h2 {
+  font-family: 'Courier New', Courier, monospace;
+  padding-top: 20px;
+}
+
+.container {
+  padding-left: 130px;
+  padding-right: 130px;
+}
+
+.row{
+  padding-top: 40px;
+  border-bottom: 2px solid;
+}
+
+#bottom {
+  padding-bottom: 50px;
+}
+
+#toptime {
+  padding-top: 20px;
+}
