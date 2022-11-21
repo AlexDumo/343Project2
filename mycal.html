@@ -161,8 +161,10 @@
         modal.style.display = "none";
       }
 
-      const jsonOut = JSON.stringify(value)
+      const jsonOut = JSON.stringify(value);
       localStorage.setItem(jsonOut, "eventData");
+      // const a = document.createElement("a");
+      // const file = new Blob([jsonOut], {type: "text"});
     });
 
 
