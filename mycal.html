@@ -9,6 +9,7 @@
     integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
   <link href="style.css" rel="stylesheet">
   <script src="scripts.js"></script>
+  <script src="./FileSaver.js/src/FileSaver.js"></script>
 </head>
 
 <body>
@@ -121,6 +122,8 @@
         <input type="time" id="start-time" name="start-time" value="12:00">
         <label for="end-time">End time:</label>
         <input type="time" id="end-time" name="end-time" value="13:00">
+        <label for="school-check">School:</label>
+        <input type="checkbox" id="school-check" name="school-check" value="school">
         <input type="submit" id="submit-button" name="submit-button" value="Create Event">
       </form>
     </div>
@@ -128,11 +131,12 @@
   </div>
 
   <script>
+    // const fs = require("fs");
     // console.log(v)
 
     // Known bug: When the form validation doesn't pass (eg start time 
     // is after end time), you need to refresh the page to try again.
-
+    var currLocal = ?localStorage.getItem("eventdata");
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
     // const jsonOut;
@@ -161,10 +165,15 @@
         modal.style.display = "none";
       }
 
-      const jsonOut = JSON.stringify(value)
-      localStorage.setItem(jsonOut, "eventData");
+      const jsonOut = JSON.stringify(value);
+      console.log(jsonOut);
+      console.log(JSON.parse(jsonOut));
+      localStorage.setItem("eventdata", currLocal + jsonOut);
+      // const blob = new Blob([jsonOut], {type: "application/json"});
+      // saveAs(blob, "testfile.txt");
     });
 
+    // localStorage.getItem("evenData.json", );
 
     // Get the modal
     var modal = document.getElementById("myModal");
