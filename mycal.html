@@ -79,7 +79,6 @@
     </div>
     <div class="row">
       <div class="col-2">5 pm</div>
-      <div id="5pm"></div>
     </div>
     <div class="row">
       <div class="col-2">6 pm</div>
@@ -136,7 +135,7 @@
 
     // Known bug: When the form validation doesn't pass (eg start time 
     // is after end time), you need to refresh the page to try again.
-    var currLocal = ?localStorage.getItem("eventdata");
+    var currLocal = localStorage.getItem("eventdata");
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
     // const jsonOut;
