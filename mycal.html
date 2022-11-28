@@ -21,88 +21,10 @@
       $("#nav-holder").replaceWith(data);
     });
   </script>
-  
-  <h2 class="text-center"><b>What are you accomplishing today?</b></h2>
 
-  <!-- added a holder for timeslots so we don't have to copy all of the code for every page -->
-  <section class="container">
-    <div class="row" id="toptime">
-      <div class="col-2">12 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">1 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">2 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">3 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">4 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">5 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">6 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">7 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">8 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">9 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">10 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">11 am</div>
-    </div>
-    <div class="row">
-      <div class="col-2">12 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">1 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">2 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">3 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">4 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">5 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">6 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">7 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">8 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">9 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">10 pm</div>
-    </div>
-    <div class="row">
-      <div class="col-2">11 pm</div>
-    </div>
-  </section>
-  <div id="bottom"></div>
 
   <!-- Modal code from w3Schools -->
-  <h2>MyCal</h2>
+  <h2 id="test">MyCal</h2>
 
   <!-- Trigger/Open The Modal -->
   <button id="myBtn">Create Event</button>
@@ -117,24 +39,84 @@
         <label for="event-name">Event name:</label>
         <input type="text" id="event-name" name="event-name" required placeholder="Enter Name"
           oninvalid="this.setCustomValidity('Please enter a name for the event')" oninput="this.setCustomValidity('')">
-        <label for="start-time">Start time:</label>
+          <label for="start-time">Start time:</label>
+        <select name="start-time" id="start-time"></select>
+        <label for="end-time">End time:</label>
+        <select name="end-time" id="end-time"></select>
+        <script>
+          // Create the hours options for select
+          for(let i = 0; i < 24; i ++){
+            let timeSelect = document.createElement("option");
+            timeSelect.value = i;
+            timeSelect.text =
+              (i < 12) ? (((i % 12 == 0) ? 12 : i) + "am") : 
+              (((i % 12 == 0) ? 12 : i % 12) + "pm");
+            let timeSelect2 = timeSelect.cloneNode(true);
+            document.getElementById("start-time").add(timeSelect.cloneNode(true));
+            document.getElementById("end-time").add(timeSelect);
+          }
+        </script>
+        <!-- <label for="start-time">Start time:</label>
         <input type="time" id="start-time" name="start-time" value="12:00">
         <label for="end-time">End time:</label>
-        <input type="time" id="end-time" name="end-time" value="13:00">
+        <input type="time" id="end-time" name="end-time" value="13:00"> -->
         <label for="school-check">School:</label>
-        <input type="checkbox" id="school-check" name="school-check" value="school">
+        <input type="checkbox" id="school-check" name="school-check" value="true">
         <input type="submit" id="submit-button" name="submit-button" value="Create Event">
       </form>
     </div>
 
   </div>
 
+  <h2 class="text-center"><b>What are you accomplishing today?</b></h2>
+
+  <div id="container"></div>
+
   <script>
+    function createCalendar(start = 8, end = 20) {
+      const container = document.createElement("section");
+      container.className = "container";
+
+      // builds the calendar graphic
+      for (var i = start; i <= end; i++) {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.id = i;
+        container.appendChild(row);
+
+        const time = document.createElement("div");
+        time.className = "row";
+        // Converts 24hr time to 12hr time
+        const text = document.createTextNode(
+          (i < 12) ? (i + " am") : (((i % 12 == 0) ? 12 : i % 12) + " pm"));
+        time.className = "col-2";
+
+        time.appendChild(text);
+        row.appendChild(time);
+      }
+      document.getElementById("container").appendChild(container);
+    }
+
+    createCalendar(8, 20);
+
+    function addEvent(start = 12, end = 13, name = "event") {
+      const event = document.createElement("div");
+      event.className = "col-2";
+      const eventName = document.createTextNode(name);
+      event.appendChild(eventName);
+      // TODO, set up multi hour events
+      document.getElementById("" + start).appendChild(event);
+    }
+
+    addEvent(12, 13, "jeff");
+    addEvent(12, 13, "jeff2");
+
     // const fs = require("fs");
     // console.log(v)
 
-    // Known bug: When the form validation doesn't pass (eg start time 
+    // TODO Known bug: When the form validation doesn't pass (eg start time 
     // is after end time), you need to refresh the page to try again.
+    // Also, you can only submit one entry per refresh
     var currLocal = localStorage.getItem("eventdata");
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
