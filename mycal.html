@@ -111,6 +111,10 @@
       const eventName = document.createTextNode(eventObj["event-name"]);
       newEvent.appendChild(eventName);
       newEvent.id = eventObj["key"];
+      newEvent.addEventListener("mouseover", mouseOverDelete);
+      newEvent.addEventListener("mouseout", mouseOutDelete);
+      newEvent.addEventListener("click", deleteEvent);
+      newEvent.style = "cursor: pointer;";
       // TODO, set up multi hour events
       document.getElementById(eventObj["start-time"]).appendChild(newEvent);
     }
@@ -143,9 +147,45 @@
       // console.log(activeKeys);
     }
 
-    let jeffEvent = {
-      "start-time": 12,
-      "event-name": "jeff"
+    function mouseOverDelete() {
+      event.target.style.color = "red";
+    }
+
+    function mouseOutDelete() {
+      event.target.style.color = "black";
+    }
+
+    function deleteEvent() {
+      // const parent = document.getElementById(localStorage.getItem(event.target["id"])["start-time"]);
+      // console.log(getStartFromKey(event.target["id"]));
+      // console.log(getEndFromKey(event.target["id"]));
+      // console.log(getNameFromKey(event.target["id"]));
+      var eventId = event.target["id"];
+
+      document.getElementById(getStartFromKey(eventId)).
+        removeChild(document.getElementById(eventId));
+
+      // console.log(eventId);
+      localStorage.removeItem(eventId);
+      // console.log(activeKeys.indexOf(eventId));
+      delete activeKeys[activeKeys.indexOf(eventId)];
+      // console.log(activeKeys);
+    }
+
+    function getStartFromKey (key){
+      return key.substr(0, key.indexOf(seperator));
+    }
+
+    function getEndFromKey (key){
+      let newStr = key.substr(key.indexOf(seperator) + 2);
+      return newStr.substr(0, key.indexOf(seperator));
+    }
+
+    function getNameFromKey (key){
+      let newStr = key.substr(key.indexOf(seperator) + 2);
+      newStr = newStr.substr(newStr.indexOf(seperator) + 2);
+      return newStr.substr(0, newStr.indexOf(seperator));
+
     }
 
     // TODO (also also) keeping these scripts in a seperate file doesn't seem to work
@@ -203,7 +243,7 @@
       }
 
       // If any errors, return with false
-      if(errorExists)
+      if (errorExists)
         return false;
 
       // endTime.setCustomValidity("");
@@ -215,11 +255,32 @@
       let jsonOut = JSON.stringify(value);
       localStorage.setItem(value["key"], jsonOut);
 
+      // Code from GeeksForGeeks 
+      // https://www.geeksforgeeks.org/how-to-receive-json-data-at-server-side/
+
+      // Creating a XHR object
+      var xhr = new XMLHttpRequest();
+
+      // open a connection
+      xhr.open("POST", "/userdata");
+
+      // Setting the request header
+      xhr.setRequestHeader(
+        "Content-Type", "application/json"
+      );
+
+      // Converting JSON data to string
+      // var data = JSON.stringify(
+      //   { name: name.value, email: email.value }
+      // );
+      xhr.send(jsonOut);
+
       refreshCalendar();
 
       // const blob = new Blob([jsonOut], {type: "application/json"});
       // saveAs(blob, "testfile.txt");
     });
+
 
     // localStorage.getItem("evenData.json", );
 
