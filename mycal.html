@@ -39,18 +39,18 @@
         <label for="event-name">Event name:</label>
         <input type="text" id="event-name" name="event-name" required placeholder="Enter Name"
           oninvalid="this.setCustomValidity('Please enter a name for the event')" oninput="this.setCustomValidity('')">
-          <label for="start-time">Start time:</label>
+        <label for="start-time">Start time:</label>
         <select name="start-time" id="start-time"></select>
         <label for="end-time">End time:</label>
         <select name="end-time" id="end-time"></select>
         <script>
           // Create the hours options for select
-          for(let i = 0; i < 24; i ++){
+          for (let i = 0; i < 24; i++) {
             let timeSelect = document.createElement("option");
             timeSelect.value = i;
             timeSelect.text =
-              (i < 12) ? (((i % 12 == 0) ? 12 : i) + "am") : 
-              (((i % 12 == 0) ? 12 : i % 12) + "pm");
+              (i < 12) ? (((i % 12 == 0) ? 12 : i) + "am") :
+                (((i % 12 == 0) ? 12 : i % 12) + "pm");
             let timeSelect2 = timeSelect.cloneNode(true);
             document.getElementById("start-time").add(timeSelect.cloneNode(true));
             document.getElementById("end-time").add(timeSelect);
@@ -73,7 +73,15 @@
   <div id="container"></div>
 
   <script>
+    createCalendar(0, 23);
+
+    var localKeys = [];
+    var activeKeys = [];
+    // console.log("localStorage keys: " + localKeys[0]);
+    refreshCalendar();
+
     function createCalendar(start = 8, end = 20) {
+      // console.log("HERE");
       const container = document.createElement("section");
       container.className = "container";
 
@@ -88,7 +96,8 @@
         time.className = "row";
         // Converts 24hr time to 12hr time
         const text = document.createTextNode(
-          (i < 12) ? (i + " am") : (((i % 12 == 0) ? 12 : i % 12) + " pm"));
+          (i < 12) ? (((i % 12 == 0) ? 12 : i) + "am") :
+                (((i % 12 == 0) ? 12 : i % 12) + "pm"));
         time.className = "col-2";
 
         time.appendChild(text);
@@ -97,19 +106,45 @@
       document.getElementById("container").appendChild(container);
     }
 
-    createCalendar(8, 20);
-
-    function addEvent(start = 12, end = 13, name = "event") {
-      const event = document.createElement("div");
-      event.className = "col-2";
-      const eventName = document.createTextNode(name);
-      event.appendChild(eventName);
+    function addEvent(eventObj) {
+      let newEvent = document.createElement("div");
+      newEvent.className = "col-2";
+      // TODO, check if there's a way to make the name of the form a variable
+      let eventName = document.createTextNode(eventObj["event-name"]);
+      newEvent.appendChild(eventName);
       // TODO, set up multi hour events
-      document.getElementById("" + start).appendChild(event);
+      document.getElementById(eventObj["start-time"]).appendChild(newEvent);
     }
 
-    addEvent(12, 13, "jeff");
-    addEvent(12, 13, "jeff2");
+    // a seperator for the name and time of an event for the event key
+    var seperator = "@$";
+    // Generates a key for the event based on the name, start time, and end time. 
+    // Ex. Event name: jeff, start time: 3, end time 15. Output is jeff@$315
+    // This should prevent duplicates as no event needs to have the same name, start, and end.
+    function generateEventKey(eventObj){
+      return eventObj["event-name"] + seperator + eventObj["start-time"] + eventObj["end-time"];
+    }
+
+    function refreshCalendar() {
+      localKeys = Object.keys(localStorage);
+      for(const current of localKeys){
+        if(!activeKeys.includes(current)){
+          // console.log(JSON.parse(localStorage.getItem(current)));
+          addEvent(JSON.parse(localStorage.getItem(current)));
+          activeKeys.push(current);
+        }
+      }
+      // console.log(localKeys);
+      // console.log(activeKeys);
+    }
+
+    let jeffEvent = {
+      "start-time": 12,
+      "event-name": "jeff"
+    }
+
+    // document.getElementById(jeffEvent["start-time"]).appendChild(addEvent(jeffEvent));
+    // document.getElementById("12").appendChild(addEvent(12, 1, "jeff2"));
 
     // const fs = require("fs");
     // console.log(v)
@@ -117,25 +152,18 @@
     // TODO Known bug: When the form validation doesn't pass (eg start time 
     // is after end time), you need to refresh the page to try again.
     // Also, you can only submit one entry per refresh
-    var currLocal = localStorage.getItem("eventdata");
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
     // const jsonOut;
-    form.addEventListener('submit', event => {
-      console.log("here");
+    form.addEventListener('submit', function submit() {
+      // console.log("here");
       event.preventDefault();
 
       const data = new FormData(event.target);
-
       const value = Object.fromEntries(data.entries());
-
-      // let start = document.forms["createEvent"]["start-time"].value;
-      // let end = document.forms["createEvent"]["end-time"].value;
-
-      // console.log({start, end});
+      value.key = generateEventKey(value);
 
       console.log({ value });
-
       console.log("Valid Time: " + validTime(value["start-time"], value["end-time"]));
 
       if (!validTime(value["start-time"], value["end-time"])) {
@@ -144,12 +172,22 @@
       } else {
         endTime.setCustomValidity("");
         modal.style.display = "none";
-      }
 
-      const jsonOut = JSON.stringify(value);
-      console.log(jsonOut);
-      console.log(JSON.parse(jsonOut));
-      localStorage.setItem("eventdata", currLocal + jsonOut);
+        let jsonOut = JSON.stringify(value);
+        // console.log(jsonOut);
+        // console.log(JSON.parse(jsonOut));
+        var currLocal = localStorage.getItem("eventdata");
+
+        // console.log(currLocal);
+        if (!currLocal) currLocal = "";
+        // console.log(currLocal);
+
+        // Adds the new data while maintaining the old data
+        localStorage.setItem(value["key"], jsonOut);
+        // console.log(JSON.parse(localStorage.getItem(value["key"])));
+
+        refreshCalendar();
+      }
       // const blob = new Blob([jsonOut], {type: "application/json"});
       // saveAs(blob, "testfile.txt");
     });
