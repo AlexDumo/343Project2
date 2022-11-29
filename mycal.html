@@ -106,25 +106,33 @@
       document.getElementById("container").appendChild(container);
     }
 
+    // Adds an event to the DOM
     function addEvent(eventObj) {
-      let newEvent = document.createElement("div");
+      const newEvent = document.createElement("div");
       newEvent.className = "col-2";
       // TODO, check if there's a way to make the name of the form a variable
-      let eventName = document.createTextNode(eventObj["event-name"]);
+      const eventName = document.createTextNode(eventObj["event-name"]);
       newEvent.appendChild(eventName);
+      newEvent.id = eventObj["key"];
       // TODO, set up multi hour events
       document.getElementById(eventObj["start-time"]).appendChild(newEvent);
+    }
+
+    function removeEvent(eventObj){
+      const oldEvent = document.getElementById(eventObj["key"]);
+      document.getElementById(eventObj["start-time"]).removeChild(oldEvent);
     }
 
     // a seperator for the name and time of an event for the event key
     var seperator = "@$";
     // Generates a key for the event based on the name, start time, and end time. 
-    // Ex. Event name: jeff, start time: 3, end time 15. Output is jeff@$315
+    // Ex. Event name: jeff, start time: 3, end time 15. Output is jeff@$3@$15
     // This should prevent duplicates as no event needs to have the same name, start, and end.
     function generateEventKey(eventObj){
-      return eventObj["event-name"] + seperator + eventObj["start-time"] + eventObj["end-time"];
+      return eventObj["start-time"] + seperator + eventObj["end-time"] + seperator + eventObj["event-name"] + seperator;
     }
 
+    // refreshes the calendar based on what is in local storage
     function refreshCalendar() {
       localKeys = Object.keys(localStorage);
       for(const current of localKeys){
@@ -152,6 +160,7 @@
     // TODO Known bug: When the form validation doesn't pass (eg start time 
     // is after end time), you need to refresh the page to try again.
     // Also, you can only submit one entry per refresh
+    // TODO (also) prevent user from putting @$ in the name
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
     // const jsonOut;
