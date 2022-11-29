@@ -41,6 +41,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+#form-error {
+  color: red;
+}
+
 /* Modal style code from w3Schools */
 /* The Modal (background) */
 .modal {

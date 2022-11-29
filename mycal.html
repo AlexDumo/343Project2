@@ -56,12 +56,9 @@
             document.getElementById("end-time").add(timeSelect);
           }
         </script>
-        <!-- <label for="start-time">Start time:</label>
-        <input type="time" id="start-time" name="start-time" value="12:00">
-        <label for="end-time">End time:</label>
-        <input type="time" id="end-time" name="end-time" value="13:00"> -->
         <label for="school-check">School:</label>
         <input type="checkbox" id="school-check" name="school-check" value="true">
+        <div id="form-error"></div>
         <input type="submit" id="submit-button" name="submit-button" value="Create Event">
       </form>
     </div>
@@ -97,7 +94,7 @@
         // Converts 24hr time to 12hr time
         const text = document.createTextNode(
           (i < 12) ? (((i % 12 == 0) ? 12 : i) + "am") :
-                (((i % 12 == 0) ? 12 : i % 12) + "pm"));
+            (((i % 12 == 0) ? 12 : i % 12) + "pm"));
         time.className = "col-2";
 
         time.appendChild(text);
@@ -118,7 +115,7 @@
       document.getElementById(eventObj["start-time"]).appendChild(newEvent);
     }
 
-    function removeEvent(eventObj){
+    function removeEvent(eventObj) {
       const oldEvent = document.getElementById(eventObj["key"]);
       document.getElementById(eventObj["start-time"]).removeChild(oldEvent);
     }
@@ -128,15 +125,15 @@
     // Generates a key for the event based on the name, start time, and end time. 
     // Ex. Event name: jeff, start time: 3, end time 15. Output is jeff@$3@$15
     // This should prevent duplicates as no event needs to have the same name, start, and end.
-    function generateEventKey(eventObj){
+    function generateEventKey(eventObj) {
       return eventObj["start-time"] + seperator + eventObj["end-time"] + seperator + eventObj["event-name"] + seperator;
     }
 
     // refreshes the calendar based on what is in local storage
     function refreshCalendar() {
       localKeys = Object.keys(localStorage);
-      for(const current of localKeys){
-        if(!activeKeys.includes(current)){
+      for (const current of localKeys) {
+        if (!activeKeys.includes(current)) {
           // console.log(JSON.parse(localStorage.getItem(current)));
           addEvent(JSON.parse(localStorage.getItem(current)));
           activeKeys.push(current);
@@ -151,58 +148,82 @@
       "event-name": "jeff"
     }
 
-    // document.getElementById(jeffEvent["start-time"]).appendChild(addEvent(jeffEvent));
-    // document.getElementById("12").appendChild(addEvent(12, 1, "jeff2"));
-
-    // const fs = require("fs");
-    // console.log(v)
-
-    // TODO Known bug: When the form validation doesn't pass (eg start time 
-    // is after end time), you need to refresh the page to try again.
-    // Also, you can only submit one entry per refresh
-    // TODO (also) prevent user from putting @$ in the name
+    // TODO (also also) keeping these scripts in a seperate file doesn't seem to work
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
     // const jsonOut;
-    form.addEventListener('submit', function submit() {
-      // console.log("here");
+    form.addEventListener('submit', function submitEvent() {
+      // deletes the error messages if they exist. 
+      // if the error is still present they will be put back up.
+      const endError = document.getElementById("end-error");
+      const nameError = document.getElementById("name-error");
+      const formError = document.getElementById("form-error");
+      if (endError) formError.removeChild(endError)
+      if (nameError) formError.removeChild(nameError);
+
       event.preventDefault();
 
+      // Gather form data
       const data = new FormData(event.target);
       const value = Object.fromEntries(data.entries());
       value.key = generateEventKey(value);
 
-      console.log({ value });
-      console.log("Valid Time: " + validTime(value["start-time"], value["end-time"]));
+      // console.log({ value });
+      // console.log("Valid Time: " + validTime(value["start-time"], value["end-time"]));
+      var errorExists = false;
 
+      // Checks that the start time is before the end time
       if (!validTime(value["start-time"], value["end-time"])) {
-        endTime.setCustomValidity("End time must be after start time");
-        endTime.reportValidity();
-      } else {
-        endTime.setCustomValidity("");
-        modal.style.display = "none";
+        // This makes the modal not able to accept another input
+        // endTime.setCustomValidity("End time must be after start time");
+        // endTime.reportValidity();
 
-        let jsonOut = JSON.stringify(value);
-        // console.log(jsonOut);
-        // console.log(JSON.parse(jsonOut));
-        var currLocal = localStorage.getItem("eventdata");
+        if (!document.getElementById("end-error")) {
+          const endError = document.createElement("div");
+          const textNode = document.createTextNode("end time must be after start time");
+          endError.appendChild(textNode);
+          endError.id = "end-error";
+          document.getElementById("form-error").appendChild(endError);
+        }
 
-        // console.log(currLocal);
-        if (!currLocal) currLocal = "";
-        // console.log(currLocal);
-
-        // Adds the new data while maintaining the old data
-        localStorage.setItem(value["key"], jsonOut);
-        // console.log(JSON.parse(localStorage.getItem(value["key"])));
-
-        refreshCalendar();
+        errorExists = true;
       }
+
+      // Checks if the name contains the seperator that the JSON uses.
+      if (value["event-name"].includes(seperator)) {
+        if (!document.getElementById("name-error")) {
+          const nameError = document.createElement("div");
+          const textNode = document.createTextNode("event name must not contain @$");
+          nameError.appendChild(textNode);
+          nameError.id = "name-error";
+          document.getElementById("form-error").appendChild(nameError);
+        }
+
+        errorExists = true;
+      }
+
+      // If any errors, return with false
+      if(errorExists)
+        return false;
+
+      // endTime.setCustomValidity("");
+
+      // Close the modal
+      modal.style.display = "none";
+
+      // Convert to json and adds the new data to local storage
+      let jsonOut = JSON.stringify(value);
+      localStorage.setItem(value["key"], jsonOut);
+
+      refreshCalendar();
+
       // const blob = new Blob([jsonOut], {type: "application/json"});
       // saveAs(blob, "testfile.txt");
     });
 
     // localStorage.getItem("evenData.json", );
 
+    // Modal code from w3Schools
     // Get the modal
     var modal = document.getElementById("myModal");
 
