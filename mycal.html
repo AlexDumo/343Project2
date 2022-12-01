@@ -1,3 +1,9 @@
+<!-- 
+  I couldn't figure out how to get any of the scripts working in an external.js file
+I tried for quite a long time and it seemed to have something to do with interacting
+with the DOM 
+-->
+
 <!doctype html>
 <html lang="en">
 
@@ -32,7 +38,7 @@
   <div id="myModal" class="modal">
 
     <!-- Modal content -->
-    <div class="modal-content">
+    <div class="modal-content" id="modal-id">
       <span class="close">&times;</span>
       <form name="create-event" id="create-event">
         <label for="event-name">Event name:</label>
@@ -71,13 +77,29 @@
   <div id="container"></div>
 
   <script>
-    createCalendar(0, 23);
-
-    var localKeys = [];
-    var activeKeys = [];
+    var childPrefix = "ch";
     // a seperator for the name and time of an event for the event key
     var seperator = "@$";
+    var activeKeys = [];
     var editId;
+    createCalendar(0, 23);
+
+    // Checks that all items in local storage are valid before trying to render the calendar
+    // If something is invalid, delete it and alert the user
+    // Fairly light check, could be manipulated intentionally.
+    var localKeys = Object.keys(localStorage);
+    var deletedKeys = [];
+    var alertDel = false;
+    for(const curr of localKeys){
+      if(!isAKey(curr)){
+        localStorage.removeItem(curr);
+        deletedKeys.push(curr);
+        alertDel = true;
+      }
+    }
+    if(alertDel) alert("Incompatible items found in localStorage. List of deleted items: " + deletedKeys);
+
+
     refreshCalendar();
 
     // Modal code from w3Schools
@@ -147,6 +169,22 @@
       newEvent.style = "cursor: pointer;";
       // TODO, set up multi hour events
       document.getElementById(eventObj["start-time"]).appendChild(newEvent);
+
+      if (!isAChild(eventObj["key"])) {
+        for (let i = parseInt(eventObj["start-time"]) + 1; i < eventObj["end-time"]; i++) {
+          // console.log("start " + i + " end " + eventObj["end-time"]);
+          // console.log("child " + keyToChildKey(eventObj["key"], i));
+
+          const tempEvent = {
+            "start-time": i,
+            "end-time": eventObj["end-time"],
+            "key": keyToChildKey(eventObj["key"], i),
+            "event-name": "(" + eventObj["event-name"] + ")"
+          };
+
+          addEvent(tempEvent);
+        }
+      }
     }
 
     function removeEvent(eventObj) {
@@ -165,19 +203,20 @@
       }
     }
 
-    function mouseOverDelete() {event.target.style.color = "red";}
-    function mouseOutDelete() {event.target.style.color = "black";}
+    function mouseOverDelete() { event.target.style.color = "red"; }
+    function mouseOutDelete() { event.target.style.color = "black"; }
 
     function clearDeleteButtons() {
       while (document.getElementById("delete-button")) {
-        document.getElementById("create-event").removeChild(document.getElementById("delete-button"));
+        document.getElementById("modal-id").removeChild(document.getElementById("delete-button"));
       }
     }
 
     function editEvent(event) {
       clearDeleteButtons();
-      const eventObj = JSON.parse(localStorage.getItem(event.target.id));
-      const eventId = event.target.id;
+      const eventId = childKeytoKey(event.target.id);
+      const eventObj = JSON.parse(localStorage.getItem(eventId));
+
       // set the form values to match the selected event.
       document.getElementById("event-name").value = eventObj["event-name"];
       document.getElementById("start-time").value = eventObj["start-time"];
@@ -188,15 +227,17 @@
       const deleteButton = document.createElement("button");
       deleteButton.id = "delete-button";
       deleteButton.addEventListener("click", function () {
+        editId = null;
         deleteEvent(eventId);
         modal.style.display = "none";
       });
       deleteButton.textContent = "Delete Event";
-      document.getElementById("create-event").appendChild(deleteButton);
+      document.getElementById("modal-id").appendChild(deleteButton);
 
       // id for checking if the modal was called from an edit
       editId = eventId;
 
+      deleteErrorMessages();
       modal.style.display = "block";
     }
 
@@ -205,8 +246,16 @@
       document.getElementById(getStartFromKey(eventId)).
         removeChild(document.getElementById(eventId));
 
+      // delete the event hour extensions from the DOM
+      for (let i = parseInt(getStartFromKey(eventId)) + 1; i < getEndFromKey(eventId); i++) {
+        document.getElementById(i).removeChild(
+          document.getElementById(keyToChildKey(eventId, i)));
+      }
+
+      // remove the event from localStorage
       localStorage.removeItem(eventId);
       delete activeKeys[activeKeys.indexOf(eventId)];
+      delete localKeys[localKeys.indexOf(eventId)];
     }
 
     // Generates a key for the event based on the name, start time, and end time. 
@@ -224,7 +273,7 @@
     // Ex. 12@$13@$event 1@$ => 13
     function getEndFromKey(key) {
       let newStr = key.substr(key.indexOf(seperator) + 2);
-      return newStr.substr(0, key.indexOf(seperator));
+      return newStr.substr(0, newStr.indexOf(seperator));
     }
 
     // Ex. 12@$13@$event 1@$ => event 1
@@ -234,32 +283,34 @@
       return newStr.substr(0, newStr.indexOf(seperator));
     }
 
-    var childPrefix = "ch";
     // Ex. (child on 13) 12@$14@$event 1@$ => ch13@$12@$14@$event 1@$
-    function keyToChildKey (key, hour) {
-      // Check if this is already a child key.
-      console.log(key.split(seperator).length);
-      if(key.split(seperator).length == 4){
-        return key;
-      }
+    function keyToChildKey(key, hour) {
+      // Check if this is already a child key by checking how many seperators there are.
+      if (key.split(seperator).length == 5) return key;
       return childPrefix + hour + seperator + key;
     }
     // Ex. ch13@$12@$14@$event 1@$ => 12@$14@$event 1@$
-    function childKeytoKey (key) {return key.substr(key.indexOf(seperator) + 2);}
+    function childKeytoKey(key) {
+      if (key.split(seperator).length == 4) return key;
+      return key.substr(key.indexOf(seperator) + 2);
+    }
+    function isAChild(key) {
+      return key.split(seperator).length == 5;
+    }
+    function isAKey(key) {
+      return key.split(seperator).length == 4;
+    }
 
     // Saves the calendar data to a file via JSON
     document.getElementById("save-button").addEventListener("click", saveData);
     function saveData() {
       let completeOut = {};
       for (const curr of localKeys) {
-        console.log(curr);
         completeOut[curr] = localStorage.getItem(curr);
       }
 
-      console.log(completeOut);
       const blob = new Blob([JSON.stringify(completeOut)], { type: "application/json" });
       saveAs(blob, "testfile.txt");
-      console.log("SAVING");
     }
 
     function createFormError(message, nodeId) {
@@ -288,11 +339,6 @@
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
     form.addEventListener('submit', function submitEvent() {
-      // if this is called from an edit, it will delete this event
-      if (editId) {
-        deleteEvent(editId);
-        editId = null;
-      }
 
       deleteErrorMessages();
 
@@ -324,9 +370,12 @@
       if (errorExists)
         return false;
 
-      // for(let i = value["start-time"] + 1; i < value["end-time"]; i ++){
-      //   console.log(keyToChildKey())
-      // }
+
+      // if this is called from an edit, it will delete this event
+      if (editId) {
+        deleteEvent(editId);
+        editId = null;
+      }
 
       // Close the modal
       modal.style.display = "none";
@@ -334,27 +383,6 @@
       // Convert to json and adds the new data to local storage
       let jsonOut = JSON.stringify(value);
       localStorage.setItem(value["key"], jsonOut);
-
-
-      // Code from GeeksForGeeks 
-      // https://www.geeksforgeeks.org/how-to-receive-json-data-at-server-side/
-
-      // Creating a XHR object
-      // var xhr = new XMLHttpRequest();
-
-      // // open a connection
-      // xhr.open("POST", "/userdata");
-
-      // // Setting the request header
-      // xhr.setRequestHeader(
-      //   "Content-Type", "application/json"
-      // );
-
-      // Converting JSON data to string
-      // var data = JSON.stringify(
-      //   { name: name.value, email: email.value }
-      // );
-      // xhr.send(jsonOut);
 
       refreshCalendar();
     });
