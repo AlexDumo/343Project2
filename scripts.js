@@ -1,8 +1,3 @@
-// True if the start time is 
-function validTime(start, end) {
-  return start < end;
-}
-
 // Creates a calendar node for the DOM at from start hour to end hour (inclusive)
 // Input is in 24ht time, displays 12hr time
 function createCalendar(start = 8, end = 20) {

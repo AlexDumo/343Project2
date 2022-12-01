@@ -22,12 +22,11 @@
     });
   </script>
 
-
   <!-- Modal code from w3Schools -->
   <h2 id="test">MyCal</h2>
 
   <!-- Trigger/Open The Modal -->
-  <button id="myBtn">Create Event</button>
+  <button id="createButton">Create Event</button>
 
   <!-- The Modal -->
   <div id="myModal" class="modal">
@@ -35,7 +34,7 @@
     <!-- Modal content -->
     <div class="modal-content">
       <span class="close">&times;</span>
-      <form name="create-event">
+      <form name="create-event" id="create-event">
         <label for="event-name">Event name:</label>
         <input type="text" id="event-name" name="event-name" required placeholder="Enter Name"
           oninvalid="this.setCustomValidity('Please enter a name for the event')" oninput="this.setCustomValidity('')">
@@ -65,6 +64,8 @@
 
   </div>
 
+  <button id="save-button">Download Calendar Data</button>
+
   <h2 class="text-center"><b>What are you accomplishing today?</b></h2>
 
   <div id="container"></div>
@@ -74,11 +75,40 @@
 
     var localKeys = [];
     var activeKeys = [];
-    // console.log("localStorage keys: " + localKeys[0]);
+    // a seperator for the name and time of an event for the event key
+    var seperator = "@$";
+    var editId;
     refreshCalendar();
 
+    // Modal code from w3Schools
+    // Get the modal
+    var modal = document.getElementById("myModal");
+    // Get the button that opens the modal
+    var btn = document.getElementById("createButton");
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+    // When the user clicks the button, open the modal 
+    btn.onclick = function () {
+      deleteErrorMessages();
+      clearDeleteButtons();
+      document.getElementById("event-name").value = null;
+      document.getElementById("start-time").value = 12;
+      document.getElementById("end-time").value = 13;
+      document.getElementById("submit-button").value = "Create Event";
+      modal.style.display = "block";
+    }
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+      modal.style.display = "none";
+    }
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
     function createCalendar(start = 8, end = 20) {
-      // console.log("HERE");
       const container = document.createElement("section");
       container.className = "container";
 
@@ -113,7 +143,7 @@
       newEvent.id = eventObj["key"];
       newEvent.addEventListener("mouseover", mouseOverDelete);
       newEvent.addEventListener("mouseout", mouseOutDelete);
-      newEvent.addEventListener("click", deleteEvent);
+      newEvent.addEventListener("click", editEvent);
       newEvent.style = "cursor: pointer;";
       // TODO, set up multi hour events
       document.getElementById(eventObj["start-time"]).appendChild(newEvent);
@@ -124,8 +154,61 @@
       document.getElementById(eventObj["start-time"]).removeChild(oldEvent);
     }
 
-    // a seperator for the name and time of an event for the event key
-    var seperator = "@$";
+    // refreshes the calendar based on what is in local storage
+    function refreshCalendar() {
+      localKeys = Object.keys(localStorage);
+      for (const current of localKeys) {
+        if (!activeKeys.includes(current)) {
+          addEvent(JSON.parse(localStorage.getItem(current)));
+          activeKeys.push(current);
+        }
+      }
+    }
+
+    function mouseOverDelete() {event.target.style.color = "red";}
+    function mouseOutDelete() {event.target.style.color = "black";}
+
+    function clearDeleteButtons() {
+      while (document.getElementById("delete-button")) {
+        document.getElementById("create-event").removeChild(document.getElementById("delete-button"));
+      }
+    }
+
+    function editEvent(event) {
+      clearDeleteButtons();
+      const eventObj = JSON.parse(localStorage.getItem(event.target.id));
+      const eventId = event.target.id;
+      // set the form values to match the selected event.
+      document.getElementById("event-name").value = eventObj["event-name"];
+      document.getElementById("start-time").value = eventObj["start-time"];
+      document.getElementById("end-time").value = eventObj["end-time"];
+      document.getElementById("submit-button").value = "Save";
+      // document.getElementById("end-time").value = eventObj["end-time"];
+
+      const deleteButton = document.createElement("button");
+      deleteButton.id = "delete-button";
+      deleteButton.addEventListener("click", function () {
+        deleteEvent(eventId);
+        modal.style.display = "none";
+      });
+      deleteButton.textContent = "Delete Event";
+      document.getElementById("create-event").appendChild(deleteButton);
+
+      // id for checking if the modal was called from an edit
+      editId = eventId;
+
+      modal.style.display = "block";
+    }
+
+    // Deletes an event from the DOM and local storage given an ID
+    function deleteEvent(eventId) {
+      document.getElementById(getStartFromKey(eventId)).
+        removeChild(document.getElementById(eventId));
+
+      localStorage.removeItem(eventId);
+      delete activeKeys[activeKeys.indexOf(eventId)];
+    }
+
     // Generates a key for the event based on the name, start time, and end time. 
     // Ex. Event name: jeff, start time: 3, end time 15. Output is jeff@$3@$15
     // This should prevent duplicates as no event needs to have the same name, start, and end.
@@ -133,73 +216,85 @@
       return eventObj["start-time"] + seperator + eventObj["end-time"] + seperator + eventObj["event-name"] + seperator;
     }
 
-    // refreshes the calendar based on what is in local storage
-    function refreshCalendar() {
-      localKeys = Object.keys(localStorage);
-      for (const current of localKeys) {
-        if (!activeKeys.includes(current)) {
-          // console.log(JSON.parse(localStorage.getItem(current)));
-          addEvent(JSON.parse(localStorage.getItem(current)));
-          activeKeys.push(current);
-        }
-      }
-      // console.log(localKeys);
-      // console.log(activeKeys);
-    }
-
-    function mouseOverDelete() {
-      event.target.style.color = "red";
-    }
-
-    function mouseOutDelete() {
-      event.target.style.color = "black";
-    }
-
-    function deleteEvent() {
-      // const parent = document.getElementById(localStorage.getItem(event.target["id"])["start-time"]);
-      // console.log(getStartFromKey(event.target["id"]));
-      // console.log(getEndFromKey(event.target["id"]));
-      // console.log(getNameFromKey(event.target["id"]));
-      var eventId = event.target["id"];
-
-      document.getElementById(getStartFromKey(eventId)).
-        removeChild(document.getElementById(eventId));
-
-      // console.log(eventId);
-      localStorage.removeItem(eventId);
-      // console.log(activeKeys.indexOf(eventId));
-      delete activeKeys[activeKeys.indexOf(eventId)];
-      // console.log(activeKeys);
-    }
-
-    function getStartFromKey (key){
+    // Ex. 12@$13@$event 1@$ => 12
+    function getStartFromKey(key) {
       return key.substr(0, key.indexOf(seperator));
     }
 
-    function getEndFromKey (key){
+    // Ex. 12@$13@$event 1@$ => 13
+    function getEndFromKey(key) {
       let newStr = key.substr(key.indexOf(seperator) + 2);
       return newStr.substr(0, key.indexOf(seperator));
     }
 
-    function getNameFromKey (key){
+    // Ex. 12@$13@$event 1@$ => event 1
+    function getNameFromKey(key) {
       let newStr = key.substr(key.indexOf(seperator) + 2);
       newStr = newStr.substr(newStr.indexOf(seperator) + 2);
       return newStr.substr(0, newStr.indexOf(seperator));
+    }
 
+    var childPrefix = "ch";
+    // Ex. (child on 13) 12@$14@$event 1@$ => ch13@$12@$14@$event 1@$
+    function keyToChildKey (key, hour) {
+      // Check if this is already a child key.
+      console.log(key.split(seperator).length);
+      if(key.split(seperator).length == 4){
+        return key;
+      }
+      return childPrefix + hour + seperator + key;
+    }
+    // Ex. ch13@$12@$14@$event 1@$ => 12@$14@$event 1@$
+    function childKeytoKey (key) {return key.substr(key.indexOf(seperator) + 2);}
+
+    // Saves the calendar data to a file via JSON
+    document.getElementById("save-button").addEventListener("click", saveData);
+    function saveData() {
+      let completeOut = {};
+      for (const curr of localKeys) {
+        console.log(curr);
+        completeOut[curr] = localStorage.getItem(curr);
+      }
+
+      console.log(completeOut);
+      const blob = new Blob([JSON.stringify(completeOut)], { type: "application/json" });
+      saveAs(blob, "testfile.txt");
+      console.log("SAVING");
+    }
+
+    function createFormError(message, nodeId) {
+      // First checks if the error already exists
+      if (document.getElementById(nodeId)) return;
+      const nameError = document.createElement("div");
+      const textNode = document.createTextNode(message);
+      nameError.appendChild(textNode);
+      nameError.id = nodeId;
+      document.getElementById("form-error").appendChild(nameError);
+    }
+
+    function deleteErrorMessages() {
+      // deletes the error messages if they exist. 
+      // if the error is still present they will be put back up.
+      const endError = document.getElementById("end-error");
+      const nameError = document.getElementById("name-error");
+      const dupError = document.getElementById("dup-error");
+      const formError = document.getElementById("form-error");
+      if (endError) formError.removeChild(endError)
+      if (nameError) formError.removeChild(nameError);
+      if (dupError) formError.removeChild(dupError);
     }
 
     // TODO (also also) keeping these scripts in a seperate file doesn't seem to work
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
-    // const jsonOut;
     form.addEventListener('submit', function submitEvent() {
-      // deletes the error messages if they exist. 
-      // if the error is still present they will be put back up.
-      const endError = document.getElementById("end-error");
-      const nameError = document.getElementById("name-error");
-      const formError = document.getElementById("form-error");
-      if (endError) formError.removeChild(endError)
-      if (nameError) formError.removeChild(nameError);
+      // if this is called from an edit, it will delete this event
+      if (editId) {
+        deleteEvent(editId);
+        editId = null;
+      }
+
+      deleteErrorMessages();
 
       event.preventDefault();
 
@@ -208,45 +303,30 @@
       const value = Object.fromEntries(data.entries());
       value.key = generateEventKey(value);
 
-      // console.log({ value });
-      // console.log("Valid Time: " + validTime(value["start-time"], value["end-time"]));
       var errorExists = false;
 
       // Checks that the start time is before the end time
-      if (!validTime(value["start-time"], value["end-time"])) {
-        // This makes the modal not able to accept another input
-        // endTime.setCustomValidity("End time must be after start time");
-        // endTime.reportValidity();
-
-        if (!document.getElementById("end-error")) {
-          const endError = document.createElement("div");
-          const textNode = document.createTextNode("end time must be after start time");
-          endError.appendChild(textNode);
-          endError.id = "end-error";
-          document.getElementById("form-error").appendChild(endError);
-        }
-
+      if (!(parseInt(value["start-time"]) < parseInt(value["end-time"]))) {
+        createFormError("end time must be after start time", "end-error");
         errorExists = true;
       }
-
       // Checks if the name contains the seperator that the JSON uses.
       if (value["event-name"].includes(seperator)) {
-        if (!document.getElementById("name-error")) {
-          const nameError = document.createElement("div");
-          const textNode = document.createTextNode("event name must not contain @$");
-          nameError.appendChild(textNode);
-          nameError.id = "name-error";
-          document.getElementById("form-error").appendChild(nameError);
-        }
-
+        createFormError("event name must not contain " + seperator, "name-error");
         errorExists = true;
       }
-
+      // Check that this event doesn't already exist
+      if (localKeys.includes(value.key)) {
+        createFormError("event with same name and time already exists", "dup-error");
+        errorExists = true;
+      }
       // If any errors, return with false
       if (errorExists)
         return false;
 
-      // endTime.setCustomValidity("");
+      for(let i = value["start-time"] + 1; i < value["end-time"]; i ++){
+        console.log(keyToChildKey())
+      }
 
       // Close the modal
       modal.style.display = "none";
@@ -255,61 +335,29 @@
       let jsonOut = JSON.stringify(value);
       localStorage.setItem(value["key"], jsonOut);
 
+
       // Code from GeeksForGeeks 
       // https://www.geeksforgeeks.org/how-to-receive-json-data-at-server-side/
 
       // Creating a XHR object
-      var xhr = new XMLHttpRequest();
+      // var xhr = new XMLHttpRequest();
 
-      // open a connection
-      xhr.open("POST", "/userdata");
+      // // open a connection
+      // xhr.open("POST", "/userdata");
 
-      // Setting the request header
-      xhr.setRequestHeader(
-        "Content-Type", "application/json"
-      );
+      // // Setting the request header
+      // xhr.setRequestHeader(
+      //   "Content-Type", "application/json"
+      // );
 
       // Converting JSON data to string
       // var data = JSON.stringify(
       //   { name: name.value, email: email.value }
       // );
-      xhr.send(jsonOut);
+      // xhr.send(jsonOut);
 
       refreshCalendar();
-
-      // const blob = new Blob([jsonOut], {type: "application/json"});
-      // saveAs(blob, "testfile.txt");
     });
-
-
-    // localStorage.getItem("evenData.json", );
-
-    // Modal code from w3Schools
-    // Get the modal
-    var modal = document.getElementById("myModal");
-
-    // Get the button that opens the modal
-    var btn = document.getElementById("myBtn");
-
-    // Get the <span> element that closes the modal
-    var span = document.getElementsByClassName("close")[0];
-
-    // When the user clicks the button, open the modal 
-    btn.onclick = function () {
-      modal.style.display = "block";
-    }
-
-    // When the user clicks on <span> (x), close the modal
-    span.onclick = function () {
-      modal.style.display = "none";
-    }
-
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function (event) {
-      if (event.target == modal) {
-        modal.style.display = "none";
-      }
-    }
 
   </script>
 
