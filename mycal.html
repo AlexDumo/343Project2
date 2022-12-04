@@ -167,7 +167,6 @@ with the DOM
       newEvent.addEventListener("mouseout", mouseOutDelete);
       newEvent.addEventListener("click", editEvent);
       newEvent.style = "cursor: pointer;";
-      // TODO, set up multi hour events
       document.getElementById(eventObj["start-time"]).appendChild(newEvent);
 
       if (!isAChild(eventObj["key"])) {
