@@ -45,6 +45,12 @@ body {
   color: red;
 }
 
+#delete-button {
+  width: 150px;
+  color: white;
+  background-color: darkred;
+}
+
 /* Modal style code from w3Schools */
 /* The Modal (background) */
 .modal {

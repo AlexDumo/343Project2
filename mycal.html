@@ -63,11 +63,11 @@ with the DOM
       <form name="create-event" id="create-event">
         <label for="event-name">Event name:</label>
         <input type="text" id="event-name" name="event-name" required placeholder="Enter Name"
-          oninvalid="this.setCustomValidity('Please enter a name for the event')" oninput="this.setCustomValidity('')">
+          oninvalid="this.setCustomValidity('Please enter a name for the event')" oninput="this.setCustomValidity('')"><br>
         <label for="start-time">Start time:</label>
-        <select name="start-time" id="start-time"></select>
+        <select name="start-time" id="start-time"></select><br>
         <label for="end-time">End time:</label>
-        <select name="end-time" id="end-time"></select>
+        <select name="end-time" id="end-time"></select><br>
         <script>
           // Create the hours options for select
           for (let i = 0; i < 24; i++) {
@@ -81,8 +81,15 @@ with the DOM
             document.getElementById("end-time").add(timeSelect);
           }
         </script>
-        <label for="school-check">School:</label>
-        <input type="checkbox" id="school-check" name="school-check" value="true">
+        <label for="radio">Event type:</label>
+        <input type="radio" id="school" name="category" value="school">
+        <label for="school">School</label>
+        <input type="radio" id="professional" name="category" value="professional">
+        <label for="professional">Professional</label>
+        <input type="radio" id="personal" name="category" value="personal">
+        <label for="personal">Personal</label><br>
+        <label for="important-check">Important:</label>
+        <input type="checkbox" id="important-check" name="important-check" value="true">
         <div id="form-error"></div>
         <input type="submit" id="submit-button" name="submit-button" value="Create Event">
       </form>
@@ -180,7 +187,11 @@ with the DOM
       const newEvent = document.createElement("div");
       newEvent.className = "col-2";
       // TODO, check if there's a way to make the name of the form a variable
-      const eventName = document.createTextNode(eventObj["event-name"]);
+      let eventNameText = eventObj["event-name"];
+      console.log("Important? " + eventObj["important"]);
+      if(isImportant(eventObj["key"]))
+        eventNameText = "*" + eventNameText + "*";
+      const eventName = document.createTextNode(eventNameText);
       newEvent.appendChild(eventName);
       newEvent.id = eventObj["key"];
       newEvent.addEventListener("mouseover", mouseOverDelete);
@@ -240,6 +251,9 @@ with the DOM
       document.getElementById("event-name").value = eventObj["event-name"];
       document.getElementById("start-time").value = eventObj["start-time"];
       document.getElementById("end-time").value = eventObj["end-time"];
+      console.log(isImportant(eventObj["key"]));
+      document.getElementById("important-check").checked = isImportant(eventObj["key"]);
+      document.getElementById(eventType(eventObj["key"])).checked = true;
       document.getElementById("submit-button").value = "Save";
       // document.getElementById("end-time").value = eventObj["end-time"];
 
@@ -278,10 +292,17 @@ with the DOM
     }
 
     // Generates a key for the event based on the name, start time, and end time. 
-    // Ex. Event name: jeff, start time: 3, end time 15. Output is jeff@$3@$15
+    // Ex. Event name: jeff, start time: 3, end time 15, school event, is important. Output is 3@$15@$jeff@$si
+    // Ex. Event name: jeff, start time: 3, end time 15, personal event, isn't important. Output is 3@$15@$jeff@$p
     // This should prevent duplicates as no event needs to have the same name, start, and end.
     function generateEventKey(eventObj) {
-      return eventObj["start-time"] + seperator + eventObj["end-time"] + seperator + eventObj["event-name"] + seperator;
+      return eventObj["start-time"] + seperator + 
+        eventObj["end-time"] + seperator + 
+        eventObj["event-name"] + seperator +
+        (eventObj["category"] == "school" ? "s" : "") +
+        (eventObj["category"] == "professional" ? "f" : "") +
+        (eventObj["category"] == "personal" ? "p" : "") +
+        (eventObj["important-check"] ? "i" : "");
     }
 
     // Ex. 12@$13@$event 1@$ => 12
@@ -300,6 +321,24 @@ with the DOM
       let newStr = key.substr(key.indexOf(seperator) + 2);
       newStr = newStr.substr(newStr.indexOf(seperator) + 2);
       return newStr.substr(0, newStr.indexOf(seperator));
+    }
+
+    // Ex. 12@$13@$event 1@$ => no
+    // Ex. 12@$13@$event 1@$i => yes
+    function isImportant(key) {
+      return key[key.length - 1] == 'i';
+    }
+    function eventType(key) {
+      switch(key[key.length - 2]){
+        case 's':
+          return "school";
+        case 'p':
+          return "personal";
+        case 'f':
+          return "professional";
+        default:
+          return "school";
+      }
     }
 
     // Ex. (child on 13) 12@$14@$event 1@$ => ch13@$12@$14@$event 1@$
@@ -367,6 +406,8 @@ with the DOM
       const data = new FormData(event.target);
       const value = Object.fromEntries(data.entries());
       value.key = generateEventKey(value);
+
+      console.log(value);
 
       var errorExists = false;
 
