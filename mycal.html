@@ -16,6 +16,29 @@ with the DOM
   <link href="style.css" rel="stylesheet">
   <script src="scripts.js"></script>
   <script src="./FileSaver.js/src/FileSaver.js"></script>
+  <style>
+    @media (min-width: 880px) {
+      #createButton {
+        position: absolute;
+        top: 80px;
+        right:40px;
+      }
+    }
+
+    @media (max-width: 880px) {
+      #createButton {
+        position: absolute;
+        top: 120px;
+        right:40px;
+      }
+    }
+
+    #save-button {
+      margin-left: 400px;
+      margin-top: 30px;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 
 <body>
@@ -27,9 +50,6 @@ with the DOM
       $("#nav-holder").replaceWith(data);
     });
   </script>
-
-  <!-- Modal code from w3Schools -->
-  <h2 id="test">MyCal</h2>
 
   <!-- Trigger/Open The Modal -->
   <button id="createButton">Create Event</button>
@@ -70,11 +90,11 @@ with the DOM
 
   </div>
 
-  <button id="save-button">Download Calendar Data</button>
-
   <h2 class="text-center"><b>What are you accomplishing today?</b></h2>
 
-  <div id="container"></div>
+  <div id="container"></div> <!-- Holder for list of times -->
+
+  <button id="save-button">Download Calendar Data</button>
 
   <script>
     var childPrefix = "ch";
