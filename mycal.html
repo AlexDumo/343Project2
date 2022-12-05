@@ -30,7 +30,7 @@ with the DOM
   </script>
 
   <!-- Trigger/Open The Modal -->
-  <button id="createButton">Create Event</button>
+  <button id="createButton" class="btn btn-primary">Create Event</button>
 
   <!-- The Modal -->
   <div id="myModal" class="modal">
@@ -69,7 +69,7 @@ with the DOM
         <label for="important-check">Important:</label>
         <input type="checkbox" id="important-check" name="important-check" value="true">
         <div id="form-error"></div>
-        <input type="submit" id="submit-button" name="submit-button" value="Create Event">
+        <input type="submit" id="submit-button" name="submit-button" value="Create Event" class="btn btn-success">
       </form>
     </div>
 
@@ -79,7 +79,7 @@ with the DOM
 
   <div id="container"></div> <!-- Holder for list of times -->
 
-  <button id="save-button" class="d-flex justify-content-end">Download Calendar Data</button>
+  <button id="save-button" class="btn btn-dark">Download Calendar Data</button>
 
   <script>
     var childPrefix = "ch";
@@ -229,8 +229,10 @@ with the DOM
       document.getElementById("submit-button").value = "Save";
       // document.getElementById("end-time").value = eventObj["end-time"];
 
+      // add a delete button
       const deleteButton = document.createElement("button");
       deleteButton.id = "delete-button";
+      deleteButton.className = "btn btn-danger";
       deleteButton.addEventListener("click", function () {
         editId = null;
         deleteEvent(eventId);
@@ -343,7 +345,7 @@ with the DOM
       }
 
       const blob = new Blob([JSON.stringify(completeOut)], { type: "application/json" });
-      saveAs(blob, "testfile.txt");
+      saveAs(blob, "mycal output.txt");
     }
 
     function createFormError(message, nodeId) {

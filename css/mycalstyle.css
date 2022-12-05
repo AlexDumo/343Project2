@@ -20,8 +20,11 @@
   
 #delete-button {
     width: 150px;
-    color: white;
-    background-color: darkred;
+}
+
+#save-button {
+  display: block;
+  margin: 25px auto;
 }
 
 /* Modal style code from w3Schools */
