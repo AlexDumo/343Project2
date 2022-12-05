@@ -1,0 +1,26 @@
+h2 {
+  font-family: 'Courier New', Courier, monospace;
+  padding-top: 20px;
+}
+
+.container {
+  padding-left: 130px;
+  padding-right: 130px;
+}
+
+.row{
+  padding-top: 40px;
+  border-bottom: 2px solid;
+}
+
+#bottom {
+  padding-bottom: 50px;
+}
+
+#toptime {
+  padding-top: 20px;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}

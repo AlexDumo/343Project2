@@ -13,32 +13,10 @@ with the DOM
   <title>Calnect</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-  <link href="style.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/mycalstyle.css" rel="stylesheet">
   <script src="scripts.js"></script>
   <script src="./FileSaver.js/src/FileSaver.js"></script>
-  <style>
-    @media (min-width: 880px) {
-      #createButton {
-        position: absolute;
-        top: 80px;
-        right:40px;
-      }
-    }
-
-    @media (max-width: 880px) {
-      #createButton {
-        position: absolute;
-        top: 120px;
-        right:40px;
-      }
-    }
-
-    #save-button {
-      margin-left: 400px;
-      margin-top: 30px;
-      margin-bottom: 20px;
-    }
-  </style>
 </head>
 
 <body>
@@ -101,7 +79,7 @@ with the DOM
 
   <div id="container"></div> <!-- Holder for list of times -->
 
-  <button id="save-button">Download Calendar Data</button>
+  <button id="save-button" class="d-flex justify-content-end">Download Calendar Data</button>
 
   <script>
     var childPrefix = "ch";
@@ -125,7 +103,6 @@ with the DOM
       }
     }
     if(alertDel) alert("Incompatible items found in localStorage. List of deleted items: " + deletedKeys);
-
 
     refreshCalendar();
 
@@ -448,5 +425,6 @@ with the DOM
     });
 
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
 </body>
