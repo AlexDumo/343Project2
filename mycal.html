@@ -165,7 +165,6 @@ with the DOM
       newEvent.className = "col-2";
       // TODO, check if there's a way to make the name of the form a variable
       let eventNameText = eventObj["event-name"];
-      console.log("Important? " + eventObj["important"]);
       if(isImportant(eventObj["key"]))
         eventNameText = "*" + eventNameText + "*";
       const eventName = document.createTextNode(eventNameText);
@@ -179,9 +178,6 @@ with the DOM
 
       if (!isAChild(eventObj["key"])) {
         for (let i = parseInt(eventObj["start-time"]) + 1; i < eventObj["end-time"]; i++) {
-          // console.log("start " + i + " end " + eventObj["end-time"]);
-          // console.log("child " + keyToChildKey(eventObj["key"], i));
-
           const tempEvent = {
             "start-time": i,
             "end-time": eventObj["end-time"],
@@ -228,7 +224,6 @@ with the DOM
       document.getElementById("event-name").value = eventObj["event-name"];
       document.getElementById("start-time").value = eventObj["start-time"];
       document.getElementById("end-time").value = eventObj["end-time"];
-      console.log(isImportant(eventObj["key"]));
       document.getElementById("important-check").checked = isImportant(eventObj["key"]);
       document.getElementById(eventType(eventObj["key"])).checked = true;
       document.getElementById("submit-button").value = "Save";
@@ -300,13 +295,16 @@ with the DOM
       return newStr.substr(0, newStr.indexOf(seperator));
     }
 
-    // Ex. 12@$13@$event 1@$ => no
-    // Ex. 12@$13@$event 1@$i => yes
+    // Ex. 12@$13@$event 1@$s => no
+    // Ex. 12@$13@$event 1@$si => yes
     function isImportant(key) {
       return key[key.length - 1] == 'i';
     }
+
     function eventType(key) {
-      switch(key[key.length - 2]){
+      const switchValue = isImportant(key) ? 
+        key[key.length - 2] : key[key.length - 1];
+      switch(switchValue){
         case 's':
           return "school";
         case 'p':
@@ -351,6 +349,8 @@ with the DOM
     function createFormError(message, nodeId) {
       // First checks if the error already exists
       if (document.getElementById(nodeId)) return;
+
+      // Adds error message to the DOM
       const nameError = document.createElement("div");
       const textNode = document.createTextNode(message);
       nameError.appendChild(textNode);
@@ -360,7 +360,6 @@ with the DOM
 
     function deleteErrorMessages() {
       // deletes the error messages if they exist. 
-      // if the error is still present they will be put back up.
       const endError = document.getElementById("end-error");
       const nameError = document.getElementById("name-error");
       const dupError = document.getElementById("dup-error");
@@ -374,9 +373,7 @@ with the DOM
     const endTime = document.getElementById("end-time");
     const form = document.querySelector('form');
     form.addEventListener('submit', function submitEvent() {
-
       deleteErrorMessages();
-
       event.preventDefault();
 
       // Gather form data
@@ -384,16 +381,13 @@ with the DOM
       const value = Object.fromEntries(data.entries());
       value.key = generateEventKey(value);
 
-      console.log(value);
-
       var errorExists = false;
-
       // Checks that the start time is before the end time
       if (!(parseInt(value["start-time"]) < parseInt(value["end-time"]))) {
         createFormError("end time must be after start time", "end-error");
         errorExists = true;
       }
-      // Checks if the name contains the seperator that the JSON uses.
+      // Checks that the name does not contain the seperator that the JSON uses.
       if (value["event-name"].includes(seperator)) {
         createFormError("event name must not contain " + seperator, "name-error");
         errorExists = true;
@@ -407,8 +401,7 @@ with the DOM
       if (errorExists)
         return false;
 
-
-      // if this is called from an edit, it will delete this event
+      // if this is called from an edit, it will delete this event before creating a new one
       if (editId) {
         deleteEvent(editId);
         editId = null;
